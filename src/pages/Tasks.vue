@@ -2,6 +2,7 @@
   <div class="navbar-area text-center">
     <Navbar>
       <a class="nav-link hover-pointer" @click="goToHome">Home</a>
+      <a class="nav-link active" @click="goToHome">Tasks</a>
       <a @click="showSignUp = true" class="nav-link hover-pointer">Register</a>
       <Register :show="showSignUp" @close="showSignUp = false" />
       <a @click="showSignIn = true" class="nav-link hover-pointer">Log In</a>
