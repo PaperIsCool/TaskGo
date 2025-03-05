@@ -16,8 +16,8 @@
         <div class="col-sm-6">
           <h1 class="off-white title-size pb-4">Stay Organized. Stay Productive. </h1>
           <p class="pb-4">Effortlessly manage your tasks with TaskGo - Anywhere, Anytime. </p>
-          <button class="btn btn-dark cta-btn-primary">Get Started</button>
-          <button class="btn btn-dark cta-btn-secondary">Sign In</button>          
+          <button class="btn btn-dark cta-btn-primary" @click="goToTasks">Get Started</button>
+          <button class="btn btn-dark cta-btn-secondary" @click="showSignIn = true">Log In</button>          
         </div>
       </div>
   </div>
@@ -25,9 +25,10 @@
 
 <script>
   import { ref } from 'vue';
-  import Register from './Register.vue';
-  import SignIn from './SignIn.vue';
-  import Navbar from './navbar.vue';
+  import Register from '@/components/Register.vue';
+  import SignIn from '@/components/SignIn.vue';
+  import Navbar from '@/components/Navbar.vue';
+  import { useRouter } from 'vue-router';
 
   export default {
       components:{
@@ -36,7 +37,13 @@
       setup() {
         const showSignUp = ref(false);
         const showSignIn = ref(false);
-        return { showSignUp, showSignIn }
+        const router = useRouter();
+
+        const goToTasks = () => {
+          router.push('/tasks');
+        };
+
+        return { showSignUp, showSignIn, goToTasks }
       },
   }
 </script>
