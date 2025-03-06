@@ -59,6 +59,10 @@
     height: 95vh;
 }
 
+.vw-90 {
+    width: 90vw;
+}
+
 .logo {
     width: 30vw;
 }
@@ -70,4 +74,9 @@
 
 .hover-pointer:hover {
     cursor: pointer;
+}
+
+.main-content-tasks {
+    display: flex;
+    justify-content: center;
 }
