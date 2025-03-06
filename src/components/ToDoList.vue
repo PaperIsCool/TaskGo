@@ -1,92 +1,135 @@
 <template>
-    <div>
-      <button @click="replaceWithPlaceholder" class="btn btn-danger">[DEV] Replace tasks with placeholders</button>
-      <ul>
-        <li v-for="(status, taskName) in tasks" :key="taskName">
-            <input type="checkbox" @change="toggleTaskStatus(taskName, $event.target.checked)" :checked="status === 'complete'" />
-            <button @click="removeTask(taskName)" class="btn btn-danger">-</button>
-            <span :class="{ 'completed': status === 'complete' }">{{ taskName }}</span>
-        </li>
-      </ul>
-  
-      <input v-model="task" type="text" placeholder="Add a task" />
-      <button class="btn btn-success" @click="addTask(task)">+</button>
-  
-    </div>
-  </template>
-  
-  <script>
-  import { reactive, ref } from 'vue';
-  
-  export default {
-    name: 'ToDoList',
-    setup() {
-      const tasks = reactive({});
-      const task = ref('');
-  
-      const addTask = (taskVal) => {
-        if (taskVal.trim() !== '') {
-          tasks[taskVal] = "incomplete";
-          task.value = '';
+  <div>
+    <ToDoItems 
+      :tasks="tasks" 
+      @toggleTaskStatus="toggleTaskStatus" 
+      @removeTask="removeTask"
+    />
+    <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)"/>
+  </div>
+</template>
+
+<script>
+import { reactive, ref, onMounted } from 'vue';
+import ToDoItems from './ToDoItems.vue';
+
+export default {
+  name: 'ToDoList',
+  components: {
+    ToDoItems
+  },
+  setup() {
+    const tasks = reactive({});
+    const task = ref('');
+
+    const addTask = (taskVal) => {
+      if (taskVal.trim() !== '') {
+        tasks[taskVal] = "incomplete";
+        task.value = '';
+      }
+      reorderTasks();
+    };
+
+    const removeTask = (taskName) => {
+      delete tasks[taskName];
+    };
+
+    const completeTask = (taskName) => {
+      delete tasks[taskName];
+      tasks[taskName] = "complete";
+    };
+
+    const incompleteTask = (taskName) => {
+      tasks[taskName] = "incomplete";
+    };
+
+    const toggleTaskStatus = (taskName, isChecked) => {
+      if (isChecked) {
+        completeTask(taskName);
+      } else {
+        incompleteTask(taskName);
+      }
+    };
+
+    const clearTasks = () => {
+      Object.keys(tasks).forEach((task) => {
+          delete tasks[task];
+      });
+    };
+
+    const clearCompletedTasks = () => {
+      for (const task in tasks) {
+        if (tasks[task] === "complete") {
+          delete tasks[task];
         }
-      };
+      }
+    };
 
-      const removeTask = (taskName) => {
-        delete tasks[taskName];
-      };
-  
-      const completeTask = (taskName) => {
-        tasks[taskName] = "complete"; 
-      };
-  
-      const incompleteTask = (taskName) => {
-        tasks[taskName] = "incomplete";
-      };
+    const addPlaceholders = () => {
+      addTask("Buy groceries");
+      addTask("Clean the garage");
+      addTask("Finish reading the report");
+      addTask("Schedule doctor's appointment");
+      addTask("Call the insurance company");
+      addTask("Send meeting notes to team");
+      addTask("Organize the bookshelf");
+      completeTask("Send meeting notes to team");
+      completeTask("Schedule doctor's appointment");
+      completeTask("Clean the garage");
+    };
 
-      const toggleTaskStatus = (taskName, isChecked) => {
-        if (isChecked) {
-          completeTask(taskName);
+    const reorderTasks = () => {
+      const completedTasks = {};
+      const incompleteTasks = {};
+
+      for (const task in tasks) {
+        if (tasks[task] === "complete") {
+          completedTasks[task] = "complete";
         } else {
-          incompleteTask(taskName);
+          incompleteTasks[task] = "incomplete";
         }
-      };
-  
-      const clearTasks = () => {
-        Object.keys(tasks).forEach((task) => {
-            delete tasks[task];
-        });
-      };
-  
-      const clearCompletedTasks = () => {
-        for (const task in tasks) {
-          if (tasks[task] === "complete") {
-            delete tasks[task];
-          }
-        }
-      };
+      }
+      
+      Object.keys(tasks).forEach(task => delete tasks[task]);
+      Object.assign(tasks, incompleteTasks, completedTasks);
+    };
 
-      const replaceWithPlaceholder = () => {
-        clearTasks();
-        addTask("Buy groceries");
-        addTask("Clean the garage");
-        completeTask("Clean the garage");
-        addTask("Finish reading the report");
-        addTask("Schedule doctor's appointment");
-        completeTask("Schedule doctor's appointment");
-        addTask("Call the insurance company");
-        addTask("Send meeting notes to team");
-        completeTask("Send meeting notes to team");
-        addTask("Organize the bookshelf");
-      };
-  
-      return { task, tasks, addTask, removeTask, completeTask, incompleteTask, toggleTaskStatus, clearTasks, clearCompletedTasks, replaceWithPlaceholder };
-    }
-  };
 
-  </script>
-  
-  <style scoped>
-  .completed {
-    text-decoration: line-through;
+    onMounted(() => {
+      window.addPlaceholders = addPlaceholders;
+      window.clearTasks = clearTasks;
+      window.clearCompletedTasks = clearCompletedTasks;
+    });
+
+    return { task, tasks, addTask, removeTask, completeTask, incompleteTask, toggleTaskStatus, clearTasks, clearCompletedTasks, addPlaceholders };
   }
-  </style>
+};
+</script>
+
+<style scoped>
+.text-input {
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  border-bottom: none;
+  background-color: #222222;
+  color: #F5F5F5;
+  width: 40vw;
+  font-size: 100%;
+  margin-bottom: 5%;
+  text-align: left;
+}
+.text-input::placeholder {
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  background-color: #222222;
+  color: #B0B0B0;
+}
+.text-input:focus {
+  outline: none;
+  border-top: none;
+  border-right: none;
+  border-left: none;
+}
+</style>

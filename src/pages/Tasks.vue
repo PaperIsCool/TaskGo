@@ -6,7 +6,7 @@
       </div>
       <div class="col d-flex justify-content-center">
         <div class="main-content-box">
-          <h1 class="mt-3 off-white text-center">Tasks</h1>
+          <h1 class="mt-4 mb-4 off-white text-center">Tasks</h1>
           <ToDoList />
         </div>
       </div>
