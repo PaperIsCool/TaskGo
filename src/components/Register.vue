@@ -8,8 +8,10 @@
                 <button @click="$emit('close')" class="close-btn">🗙</button>
             </div>
             <div class="form-content">
-                <h4>Enter your name. </h4>
-                <input type="text" placeholder="John Doe" name="name" class="text-input"/><br />
+                <h4>Enter your first name. </h4>
+                <input type="text" placeholder="John" name="name" class="text-input"/><br />
+                <h4>Enter your last name. </h4>
+                <input type="text" placeholder="Doe" name="name" class="text-input"/><br />
                 <h4>Create a username. </h4>
                 <input type="text" placeholder="johndoe123" name="username" class="text-input" /><br />
                 <h4>Enter your email. </h4>

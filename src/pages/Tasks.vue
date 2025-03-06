@@ -6,7 +6,8 @@
       </div>
       <div class="col d-flex justify-content-center">
         <div class="main-content-box">
-          <h1 class="mt-3 off-white">Tasks</h1>
+          <h1 class="mt-3 off-white text-center">Tasks</h1>
+          <ToDoList />
         </div>
       </div>
     </div>
@@ -20,10 +21,11 @@
   import SignIn from '@/components/SignIn.vue';
   import Navbar from '@/components/Navbar.vue';
   import Sidebar from '@/components/Sidebar.vue';
+  import ToDoList from '@/components/ToDoList.vue';
 
   export default {
       components:{
-        Register, SignIn, Navbar, Sidebar
+        Register, SignIn, Navbar, Sidebar, ToDoList
       },
       setup() {
         const showSignUp = ref(false);

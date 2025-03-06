@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "yarn vite --host 0.0.0.0",
+    "dev": "yarn vite --host 0.0.0.0 --port 80",
     "build": "yarn vite build",
     "preview": "yarn vite preview",
     "lint": "yarn eslint . --fix"
