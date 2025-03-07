@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <div v-if="loading" class="loading-screen">
-      <img src="@/assets/loader.png" alt="loading" width="100" class="loader-img" />
-      <h1>Please wait...</h1>
+      <img src="@/assets/logo.png" alt="TaskGo" width="250" class="loader-img" />
+      <img src="@/assets/loading.png" alt="loading" width="100" class="loader-img" />
     </div>
     <router-view v-else></router-view>
   </div>
