@@ -4,6 +4,7 @@
       :tasks="tasks" 
       @toggleTaskStatus="toggleTaskStatus" 
       @removeTask="removeTask"
+      @updateTaskName="updateTaskName"
     />
     <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)"/>
   </div>
@@ -52,6 +53,14 @@ export default {
       }
     };
 
+    const updateTaskName = (oldName, newName) => {
+      if (newName.trim() !== '' && oldName !== newName) {
+        tasks[newName] = tasks[oldName];
+        delete tasks[oldName];
+      }
+      reorderTasks();
+    };
+
     const clearTasks = () => {
       Object.keys(tasks).forEach((task) => {
           delete tasks[task];
@@ -95,7 +104,6 @@ export default {
       Object.assign(tasks, incompleteTasks, completedTasks);
     };
 
-
     onMounted(() => {
       window.addPlaceholders = addPlaceholders;
       window.clearTasks = clearTasks;
@@ -109,9 +117,9 @@ export default {
 
     watch(tasks, (val) => {
       window.localStorage.setItem('tasks', JSON.stringify(val));
-    })
+    });
 
-    return { task, tasks, addTask, removeTask, completeTask, incompleteTask, toggleTaskStatus, clearTasks, clearCompletedTasks, addPlaceholders };
+    return { task, tasks, addTask, removeTask, completeTask, incompleteTask, toggleTaskStatus, clearTasks, clearCompletedTasks, addPlaceholders, updateTaskName };
   }
 };
 </script>
