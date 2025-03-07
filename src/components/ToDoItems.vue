@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import CustomCheckbox from './checkbox.vue';
+import CustomCheckbox from './Checkbox.vue';
 
 export default {
   name: 'ToDoItems',

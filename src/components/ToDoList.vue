@@ -12,6 +12,7 @@
 <script>
 import { reactive, ref, onMounted } from 'vue';
 import ToDoItems from './ToDoItems.vue';
+import { watch } from 'vue';
 
 export default {
   name: 'ToDoList',
@@ -100,6 +101,15 @@ export default {
       window.clearTasks = clearTasks;
       window.clearCompletedTasks = clearCompletedTasks;
     });
+
+    const savedTasks = window.localStorage.getItem('tasks');
+    if (savedTasks) {
+      Object.assign(tasks, JSON.parse(savedTasks));
+    }
+
+    watch(tasks, (val) => {
+      window.localStorage.setItem('tasks', JSON.stringify(val));
+    })
 
     return { task, tasks, addTask, removeTask, completeTask, incompleteTask, toggleTaskStatus, clearTasks, clearCompletedTasks, addPlaceholders };
   }
