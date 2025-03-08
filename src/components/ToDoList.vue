@@ -55,10 +55,42 @@ export default {
 
     const updateTaskName = (oldName, newName) => {
       if (newName.trim() !== '' && oldName !== newName) {
-        tasks[newName] = tasks[oldName];
-        delete tasks[oldName];
+        const keys = Object.keys(tasks);
+
+        const values = keys.map(key => tasks[key]); 
+        
+        const index = keys.indexOf(oldName);
+        
+        let before_taskNames = []
+        let before_status = []
+        let after_taskNames = []
+        let after_status = []
+        
+        for (let i = 0; i < index; i++) {
+          before_taskNames.push(keys[i])
+          before_status.push(values[i])
+        }
+        
+        for (let i = index+1; i < keys.length; i++) { 
+          after_taskNames.push(keys[i])
+          after_status.push(values[i])
+        }
+        
+        clearTasks();
+
+        for (let i = 0; i < before_taskNames.length; i++) {
+          tasks[before_taskNames[i]] = before_status[i]
+        }
+        
+        tasks[newName] = values[index]
+        
+        for (let i = 0; i < after_taskNames.length; i++) {
+          tasks[after_taskNames[i]] = after_status[i]
+        }
+        
+        reorderTasks();
+
       }
-      reorderTasks();
     };
 
     const clearTasks = () => {
