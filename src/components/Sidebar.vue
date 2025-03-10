@@ -17,8 +17,8 @@
         <a class="nav-link hover-pointer" @click="showSignIn = true">Log In</a>
       </li>
     </ul>
-    <Register :show="showSignUp" @close="showSignUp = false" />
-    <SignIn :show="showSignIn" @close="showSignIn = false" />
+    <Register :show="showSignUp" @close="showSignUp = false" style="z-index: 10;" />
+    <SignIn :show="showSignIn" @close="showSignIn = false" style="z-index: 10;" />
   </nav>
 </template>
 
@@ -43,7 +43,7 @@ export default {
     };
 
     const goToTasks = () => {
-      router.push('/tasks');
+      router.push('/app');
     };
 
     return { showSignUp, showSignIn, goToHome, goToTasks };

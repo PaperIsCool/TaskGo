@@ -30,6 +30,7 @@
   import SignIn from '@/components/SignIn.vue';
   import Navbar from '@/components/Navbar.vue';
   import { useRouter } from 'vue-router';
+  // import { db } from '../firebase';
 
   export default {
       components:{
@@ -41,7 +42,7 @@
         const router = useRouter();
 
         const goToTasks = () => {
-          router.push('/tasks');
+          router.push('/app');
         };
 
         return { showSignUp, showSignIn, goToTasks }

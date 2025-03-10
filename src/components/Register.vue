@@ -18,8 +18,10 @@
                 <input type="email" placeholder="johndoe@example.com" name="email" class="text-input" /><br />
                 <h4>Enter a password. </h4>
                 <input type="password" placeholder="Enter Password" name="password" class="text-input" />
+                <h4>Confirm password. </h4>
+                <input type="password" placeholder="Re-enter Password" name="password" class="text-input" />
             </div>
-            <button class="btn btn-dark submit-btn">Register</button>
+            <center><button class="btn btn-dark submit-btn">Register</button></center>
         </div>
     </div>
 </template>

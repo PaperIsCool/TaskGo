@@ -13,7 +13,7 @@
                 <h4>Enter Your Password. </h4>
                 <input type="password" placeholder="Enter Password" name="password" class="text-input" />
             </div>
-            <button class="btn btn-dark submit-btn">Log In</button>
+            <center><button class="btn btn-dark submit-btn">Log In</button></center>
         </div>
     </div>
 </template>
