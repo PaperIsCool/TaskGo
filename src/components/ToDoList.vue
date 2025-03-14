@@ -2,16 +2,23 @@
   <div>
     <ToDoItems :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" />
     <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)" />
+  
+    <h1 v-if="isTask" class="text-center mt-25 large-text">🎉</h1>
+    <h1 v-if="isTask" class="text-center smaller-text">Congrats!</h1>
+    <h1 v-if="isTask" class="text-center smallest-text">You’re all done! No tasks left! </h1>
   </div>
 </template>
 
 <script>
-import { reactive, ref, onMounted, watch, onUnmounted } from 'vue';
+import { reactive, ref, onMounted, watch, onUnmounted, computed } from 'vue';
 import ToDoItems from './ToDoItems.vue';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+
+// Export tasks object
+export const tasks = reactive({});
 
 export default {
   name: 'ToDoList',
@@ -19,10 +26,10 @@ export default {
     ToDoItems
   },
   setup() {
-    const tasks = reactive({});
     const task = ref('');
     const user = ref(null);
     const userEmail = ref(null);
+    const isTask = computed(() => Object.keys(tasks).length === 0);
     
     // --------------------- GET USER STATUS ---------------------
     
@@ -185,8 +192,7 @@ export default {
       loadStorage();
     })
 
-
-    return { task, tasks, addTask, removeTask, completeTask, updateTaskName };
+    return { task, tasks, addTask, removeTask, completeTask, updateTaskName, isTask };
   }
 };
 </script>
@@ -216,5 +222,17 @@ export default {
   border-top: none;
   border-right: none;
   border-left: none;
+}
+.mt-25 {
+  margin-top: 10%;
+}
+.large-text {
+  font-size: 600%;
+}
+.smaller-text {
+  font-size: 300%;
+}
+.smallest-text {
+  font-size: 150%;
 }
 </style>
