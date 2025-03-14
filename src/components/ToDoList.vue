@@ -22,6 +22,7 @@ export default {
       if (taskVal.trim() !== '') {
         tasks[taskVal] = "incomplete";
         task.value = '';
+        reorderTasks();
         saveLocalStorage();
       }
     };
@@ -32,16 +33,19 @@ export default {
 
     const removeTask = (taskName) => {
       delete tasks[taskName];
+      reorderTasks();
       saveLocalStorage();
     };
 
     const completeTask = (taskName) => {
       tasks[taskName] = "complete";
+      reorderTasks();
       saveLocalStorage();
     };
 
     const incompleteTask = (taskName) => {
       tasks[taskName] = "incomplete";
+      reorderTasks();
       saveLocalStorage();
     };
 
@@ -51,6 +55,7 @@ export default {
       } else {
         incompleteTask(taskName);
       }
+      reorderTasks();
     };
 
     const updateTaskName = (oldName, newName) => {
@@ -84,8 +89,8 @@ export default {
         for (let i = 0; i < after_taskNames.length; i++) {
           tasks[after_taskNames[i]] = after_status[i];
         }
-        saveLocalStorage();
         reorderTasks();
+        saveLocalStorage();
       }
     };
 
@@ -95,6 +100,7 @@ export default {
           delete tasks[task];
         }
       }
+      reorderTasks();
       saveLocalStorage();
     };
 

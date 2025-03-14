@@ -33,6 +33,8 @@ firebase.js
 
 push.ps1
 
+.firebase/
+
 .env
 .env.local
 .env.*.local
