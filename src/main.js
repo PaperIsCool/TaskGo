@@ -3,12 +3,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/styles.css';
 import App from './App.vue';
 import router from './router';
-import { firestorePlugin } from 'vuefire';
+import { app as firebaseApp } from './firebase';
 
-// Create and mount the app
-const app = createApp(App);
+const vueApp = createApp(App);
 
-app.use(router);
-app.use(firestorePlugin);
+vueApp.use(router);
 
-app.mount('#app');
+vueApp.mount('#app');
+
+console.log('Firebase app initialized:', firebaseApp); //Optional test log

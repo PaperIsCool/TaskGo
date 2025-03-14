@@ -10,11 +10,14 @@
       <li class="nav-item">
         <a class="nav-link">Tasks</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item" v-if="!user">
         <a class="nav-link hover-pointer" @click="showSignUp = true">Register</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item" v-if="!user">
         <a class="nav-link hover-pointer" @click="showSignIn = true">Log In</a>
+      </li>
+      <li class="nav-item" v-if="user">
+        <a class="nav-link hover-pointer" @click="handleSignOut">Sign Out</a>
       </li>
     </ul>
     <Register :show="showSignUp" @close="showSignUp = false" style="z-index: 10;" />
@@ -27,11 +30,16 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Register from '@/components/Register.vue';
 import SignIn from '@/components/SignIn.vue';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 
 export default {
   components: {
     Register,
     SignIn
+  },
+  props: {
+    user: Object
   },
   setup() {
     const showSignUp = ref(false);
@@ -46,7 +54,17 @@ export default {
       router.push('/app');
     };
 
-    return { showSignUp, showSignIn, goToHome, goToTasks };
+    const handleSignOut = async () => {
+      try {
+        await signOut(auth);
+        alert('User signed out');
+      } catch (error) {
+        alert('Sign out error:', error.message);
+      }
+      router.push('/');
+    };
+
+    return { showSignUp, showSignIn, goToHome, goToTasks, handleSignOut };
   }
 };
 </script>

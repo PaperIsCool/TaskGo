@@ -9,46 +9,79 @@
             </div>
             <div class="form-content">
                 <h4>Enter your first name. </h4>
-                <input type="text" placeholder="John" name="name" class="text-input"/><br />
+                <input type="text" placeholder="John" name="name" class="text-input" v-model="firstName" /><br />
                 <h4>Enter your last name. </h4>
-                <input type="text" placeholder="Doe" name="name" class="text-input"/><br />
-                <h4>Create a username. </h4>
-                <input type="text" placeholder="johndoe123" name="username" class="text-input" /><br />
+                <input type="text" placeholder="Doe" name="name" class="text-input" v-model="lastName" /><br />
                 <h4>Enter your email. </h4>
-                <input type="email" placeholder="johndoe@example.com" name="email" class="text-input" /><br />
+                <input type="email" placeholder="johndoe@example.com" name="email" class="text-input" v-model="email" /><br />
                 <h4>Enter a password. </h4>
-                <input type="password" placeholder="Enter Password" name="password" class="text-input" />
+                <input type="password" placeholder="Enter Password" name="password" class="text-input" v-model="password" />
                 <h4>Confirm password. </h4>
-                <input type="password" placeholder="Re-enter Password" name="password" class="text-input" />
+                <input type="password" placeholder="Re-enter Password" name="password" class="text-input" v-model="confirmPassword" />
             </div>
-            <center><button class="btn btn-dark submit-btn">Register</button></center>
+            <center><button class="btn btn-dark submit-btn" @click="register">Register</button></center>
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    name: "Register",
-    props: {
-        show: Boolean
-    },
-    watch: {
-        show(newVal) {
-            if (newVal) {
-                document.addEventListener("keydown", this.handleEsc);
-            } else {
-                document.removeEventListener("keydown", this.handleEsc);
-            }
-        }
-    },
-    methods: {
-        handleEsc(event) {
-            if (event.key === "Escape") {
-                this.$emit("close");
-            }
-        }
-    }
-}
+<script setup>
+import { ref, onMounted, onUnmounted, watch } from 'vue'; // <-- Add onMounted and onUnmounted
+import { auth } from '../firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+
+const props = defineProps({
+  show: Boolean,
+});
+
+const emit = defineEmits(['close']);
+
+const email = ref('');
+const password = ref('');
+const firstName = ref('');
+const lastName = ref('');
+const confirmPassword = ref(''); 
+
+const register = async () => {
+  if (password.value !== confirmPassword.value) {
+    alert("Passwords do not match.");
+    return; // Stop the registration process
+  }
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+    const user = userCredential.user; // Move this line here
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+    alert("Registration Successful: " + user.email);
+    emit('close')
+  } catch (error) {
+    alert("Registration Error: " + error.message);
+  }
+};
+
+
+const handleEsc = (event) => {
+  if (event.key === 'Escape') {
+    emit('close');
+  }
+};
+
+onMounted(() => {
+  if (props.show) {
+    document.addEventListener('keydown', handleEsc);
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEsc);
+});
+
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    document.addEventListener('keydown', handleEsc);
+  } else {
+    document.removeEventListener('keydown', handleEsc);
+  }
+});
+
 </script>
 
 <style lang="css" scoped>

@@ -28,3 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+firebase.js
+.env
+.env.local
+.env.*.local
+public/build

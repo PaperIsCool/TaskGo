@@ -8,39 +8,65 @@
                 <button @click="$emit('close')" class="close-btn">🗙</button>
             </div>
             <div class="form-content">
-                <h4>Enter Your Username. </h4>
-                <input type="text" placeholder="johndoe123" name="username" class="text-input" /><br />
+                <h4>Enter Your email. </h4>
+                <input type="email" placeholder="johndoe@example.com" name="email" class="text-input" v-model="email" /><br />
                 <h4>Enter Your Password. </h4>
-                <input type="password" placeholder="Enter Password" name="password" class="text-input" />
+                <input type="password" placeholder="Enter Password" name="password" class="text-input" v-model="password" />
             </div>
-            <center><button class="btn btn-dark submit-btn">Log In</button></center>
+            <center><button class="btn btn-dark submit-btn" @click="login">Log In</button></center>
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    name: "SignIn",
-    props: {
-        show: Boolean
-    },
-    watch: {
-        show(newVal) {
-            if (newVal) {
-                document.addEventListener("keydown", this.handleEsc);
-            } else {
-                document.removeEventListener("keydown", this.handleEsc);
-            }
-        }
-    },
-    methods: {
-        handleEsc(event) {
-            if (event.key === "Escape") {
-                this.$emit("close");
-            }
-        }
-    }
-}
+<script setup>
+import { ref, onMounted, onUnmounted, watch } from 'vue'; // <-- Add onMounted and onUnmounted
+import { auth } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+
+const props = defineProps({
+  show: Boolean,
+});
+
+const emit = defineEmits(['close']);
+
+const email = ref('');
+const password = ref('');
+
+const login = async () => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
+    const user = userCredential.user; // Move this line here
+    alert("Login Successful: " + user.email);
+    emit('close')
+  } catch (error) {
+    alert("Login Error: " + error.message);
+  }
+};
+
+const handleEsc = (event) => {
+  if (event.key === 'Escape') {
+    emit('close');
+  }
+};
+
+onMounted(() => {
+  if (props.show) {
+    document.addEventListener('keydown', handleEsc);
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEsc);
+});
+
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    document.addEventListener('keydown', handleEsc);
+  } else {
+    document.removeEventListener('keydown', handleEsc);
+  }
+});
+
 </script>
 
 <style lang="css" scoped>
