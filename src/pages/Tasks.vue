@@ -6,7 +6,9 @@
       </div>
       <div class="col d-flex justify-content-center">
         <div class="main-content-box">
-          <h1 class="mt-4 mb-4 off-white text-center">Tasks</h1>
+          <h1 class="mt-4 mb-2 off-white text-center">Your Tasks</h1>
+          <h5 v-if="!user" class="text-center mb-4">Not Logged In - Using Local Storage</h5>
+          <h5 v-else class="text-center mb-4">Welcome back {{ firstName }}!</h5>
           <ToDoList />
         </div>
       </div>
@@ -24,6 +26,8 @@
   import ToDoList from '@/components/ToDoList.vue';
   import { auth } from '../firebase'; // Import auth
   import { onAuthStateChanged } from 'firebase/auth'; // Import onAuthStateChanged
+  import { doc, getDoc } from 'firebase/firestore'; // Import doc and getDoc
+  import { db } from '../firebase'; // Import db
 
   export default {
       components:{
@@ -34,18 +38,51 @@
         const showSignIn = ref(false);
         const router = useRouter();
         const user = ref(null); 
+        const firstName = ref(null);
+        const userEmail = ref(null);
+
+        
+        const getUserFirstName = async (email) => {
+          try {
+            // Get a reference to the document
+            const docRef = doc(db, 'users', email);
+            
+            // Fetch the document snapshot
+            const docSnap = await getDoc(docRef);
+            
+            if (docSnap.exists()) {
+              // Document found, access the firstName field
+              const userData = docSnap.data();
+              firstName.value = userData.firstName;
+              
+              console.log("First Name:", firstName.value);
+              return firstName;
+            } else {
+              console.log("No first name!");
+            }
+          } catch (error) {
+            console.error("Error getting first name:", error);
+          }
+        };
 
         const goToHome = () => {
           router.push('/');
         };
-
-        onMounted(() => { // Add onMounted hook
-            onAuthStateChanged(auth, (currentUser) => {
-                user.value = currentUser;
-            });
+        
+        onMounted(() => {
+          // Listen to authentication state changes
+          onAuthStateChanged(auth, (currentUser) => {
+            user.value = currentUser;  // Set the current user
+            if (currentUser) {
+              userEmail.value = currentUser.email;  // Extract the email if user is signed in
+              getUserFirstName(userEmail.value);  // Get the user's first name
+            } else {
+              userEmail.value = null;  // Clear email if user is not signed in
+            }
+          });
         });
 
-        return { showSignUp, showSignIn, goToHome, user }
+        return { showSignUp, showSignIn, goToHome, user, firstName }
       },
   }
 </script>

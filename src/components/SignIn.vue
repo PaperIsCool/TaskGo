@@ -30,6 +30,10 @@ import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { signInWithPopup } from 'firebase/auth';
 import { googleProvider } from '../firebase';
+import { db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
+import { getDoc } from 'firebase/firestore';
 
 const props = defineProps({
   show: Boolean,
@@ -46,6 +50,7 @@ const login = async () => {
     const user = userCredential.user; // Move this line here
     alert("Login Successful: " + user.email);
     emit('close')
+    window.location.reload();
   } catch (error) {
     alert("Login Error: " + error.message);
   }
@@ -53,13 +58,30 @@ const login = async () => {
 
 const googleSignIn = async () => {
   try {
-    await signInWithPopup(auth, googleProvider);
-    alert("Google Sign in Successful");
+    const userCredential = await signInWithPopup(auth, googleProvider);
+    const user = userCredential.user;
+
+    const docRef = doc(db, 'users', user.email);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      // If the document doesn't exist, create it with an empty tasks field
+      await setDoc(docRef, {
+        firstName: user.displayName.split(' ')[0],
+        lastName: user.displayName.split(' ')[1] || '',
+        email: user.email,
+        tasks: {} // Create a new empty task object only if it's a new user
+      });
+    }
+
+    alert("Google Sign in Successful, Welcome " + user.displayName);
     emit('close');
+    window.location.reload();
   } catch (error) {
-    alert('Google Sign In Error:', error.message);
+    alert('Google Sign In Error: ' + error.message);
   }
 };
+
 
 const handleEsc = (event) => {
   if (event.key === 'Escape') {

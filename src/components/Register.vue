@@ -9,15 +9,15 @@
             </div>
             <div class="form-content">
                 <h4>Enter your first name. </h4>
-                <input type="text" placeholder="John" name="name" class="text-input" v-model="firstName" /><br />
+                <input type="text" placeholder="John" name="name" class="text-input" v-model="firstName" required /><br />
                 <h4>Enter your last name. </h4>
-                <input type="text" placeholder="Doe" name="name" class="text-input" v-model="lastName" /><br />
+                <input type="text" placeholder="Doe" name="name" class="text-input" v-model="lastName" required/><br />
                 <h4>Enter your email. </h4>
-                <input type="email" placeholder="johndoe@example.com" name="email" class="text-input" v-model="email" /><br />
+                <input type="email" placeholder="johndoe@example.com" name="email" class="text-input" v-model="email" required/><br />
                 <h4>Enter a password. </h4>
-                <input type="password" placeholder="Enter Password" name="password" class="text-input" v-model="password" />
+                <input type="password" placeholder="Enter Password" name="password" class="text-input" v-model="password" required/>
                 <h4>Confirm password. </h4>
-                <input type="password" placeholder="Re-enter Password" name="password" class="text-input" v-model="confirmPassword" />
+                <input type="password" placeholder="Re-enter Password" name="password" class="text-input" v-model="confirmPassword" required/>
             </div>
             <center><button class="btn btn-dark submit-btn" @click="register">Register</button></center>
             <h2 class="pt-5 pb-5 white">Or Register With:</h2>
@@ -36,6 +36,11 @@ import { auth } from '../firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { signInWithPopup } from 'firebase/auth';
 import { googleProvider } from '../firebase';
+import { db } from '../firebase';
+import { collection, setDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { addDoc } from 'firebase/firestore';
+import { getDoc } from 'firebase/firestore';
 
 const props = defineProps({
   show: Boolean,
@@ -50,16 +55,24 @@ const lastName = ref('');
 const confirmPassword = ref(''); 
 
 const register = async () => {
-  if (password.value !== confirmPassword.value) {
+  if (password.value !== confirmPassword.value && firstName.value !== '' && lastName.value !== '' && email.value !== '' && password.value !== '' && confirmPassword.value !== '') {
     alert("Passwords do not match.");
     return; // Stop the registration process
   }
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
-    const user = userCredential.user; // Move this line here
+    const user = userCredential.user;
     await signInWithEmailAndPassword(auth, email.value, password.value);
+    const docRef = doc(db, 'users', email.value); 
+    await setDoc(docRef, {
+      email: email.value,
+      firstName: firstName.value,
+      lastName: lastName.value,
+      tasks: {}
+    });
     alert("Registration Successful: " + user.email);
     emit('close')
+    window.location.reload();
   } catch (error) {
     alert("Registration Error: " + error.message);
   }
@@ -67,13 +80,30 @@ const register = async () => {
 
 const googleSignIn = async () => {
   try {
-    await signInWithPopup(auth, googleProvider);
-    alert("Google Sign in Successful");
+    const userCredential = await signInWithPopup(auth, googleProvider);
+    const user = userCredential.user;
+
+    const docRef = doc(db, 'users', user.email);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      // If the document doesn't exist, create it with an empty tasks field
+      await setDoc(docRef, {
+        firstName: user.displayName.split(' ')[0],
+        lastName: user.displayName.split(' ')[1] || '',
+        email: user.email,
+        tasks: {} // Create a new empty task object only if it's a new user
+      });
+    }
+
+    alert("Google Sign in Successful, Welcome " + user.displayName);
     emit('close');
+    window.location.reload();
   } catch (error) {
-    alert('Google Sign In Error:', error.message);
+    alert('Google Sign In Error: ' + error.message);
   }
 };
+
 
 
 const handleEsc = (event) => {

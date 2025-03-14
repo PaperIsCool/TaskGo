@@ -1,13 +1,17 @@
 <template>
   <div>
-    <ToDoItems :tasks="tasks" @toggleTaskStatus="toggleTaskStatus" @removeTask="removeTask" @updateTaskName="updateTaskName" />
+    <ToDoItems :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" />
     <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)" />
   </div>
 </template>
 
 <script>
-import { reactive, ref, onMounted, watch } from 'vue';
+import { reactive, ref, onMounted, watch, onUnmounted } from 'vue';
 import ToDoItems from './ToDoItems.vue';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export default {
   name: 'ToDoList',
@@ -17,46 +21,95 @@ export default {
   setup() {
     const tasks = reactive({});
     const task = ref('');
+    const user = ref(null);
+    const userEmail = ref(null);
+    
+    // --------------------- GET USER STATUS ---------------------
+    
+    const getUserStatus = () => {
+      onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+          user.value = currentUser;
+          userEmail.value = currentUser.email;
+          await loadStorage(); // ensure we load tasks after setting user
+        } else {
+          user.value = false;
+          userEmail.value = null;
+          Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks on sign out
+        }
+      });
+    };
+
+    // --------------------- LOAD STORAGE ---------------------
+    
+    const loadStorage = async () => {
+    if (user.value) {
+        try {
+          const docRef = doc(db, 'users', userEmail.value);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks before reloading
+            Object.assign(tasks, userData.tasks || {});
+          } else {
+            console.log("No tasks found!");
+          }
+        } catch (error) {
+          console.error("Error loading tasks:", error);
+        }
+      } else {
+        const savedTasks = window.localStorage.getItem('tasks');
+        Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks before reloading
+        if (savedTasks) Object.assign(tasks, JSON.parse(savedTasks));
+      }
+      reorderTasks();
+    };
+    
+    // --------------------- SAVE STORAGE ---------------------
+
+    const saveStorage = async () => {
+      if (user.value) {
+        try {
+          const docRef = doc(db, 'users', userEmail.value);
+          await updateDoc(docRef, {
+            tasks: JSON.parse(JSON.stringify(tasks))
+          });
+        } catch (error) {
+          console.error("Error saving tasks:", error);
+        }
+      } else {
+        window.localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+    };
+    
+    // --------------------- ADD A TASK ---------------------
 
     const addTask = (taskVal) => {
       if (taskVal.trim() !== '') {
         tasks[taskVal] = "incomplete";
         task.value = '';
         reorderTasks();
-        saveLocalStorage();
+        saveStorage();
       }
     };
 
-    const saveLocalStorage = () => {
-      window.localStorage.setItem('tasks', JSON.stringify(tasks));
-    };
+    // --------------------- REMOVE A TASK ---------------------
 
     const removeTask = (taskName) => {
       delete tasks[taskName];
       reorderTasks();
-      saveLocalStorage();
+      saveStorage();
     };
+
+    // --------------------- COMPLETE A TASK ---------------------
 
     const completeTask = (taskName) => {
       tasks[taskName] = "complete";
       reorderTasks();
-      saveLocalStorage();
+      saveStorage();
     };
 
-    const incompleteTask = (taskName) => {
-      tasks[taskName] = "incomplete";
-      reorderTasks();
-      saveLocalStorage();
-    };
-
-    const toggleTaskStatus = (taskName, isChecked) => {
-      if (isChecked) {
-        completeTask(taskName);
-      } else {
-        incompleteTask(taskName);
-      }
-      reorderTasks();
-    };
+    // --------------------- UPDATE TASK NAME ---------------------
 
     const updateTaskName = (oldName, newName) => {
       if (newName.trim() !== '' && oldName !== newName) {
@@ -78,7 +131,7 @@ export default {
           after_status.push(values[i]);
         }
 
-        clearTasks();
+        Object.keys(tasks).forEach(task => delete tasks[task]);
 
         for (let i = 0; i < before_taskNames.length; i++) {
           tasks[before_taskNames[i]] = before_status[i];
@@ -89,33 +142,13 @@ export default {
         for (let i = 0; i < after_taskNames.length; i++) {
           tasks[after_taskNames[i]] = after_status[i];
         }
+        
         reorderTasks();
-        saveLocalStorage();
+        saveStorage();
       }
     };
 
-    const clearCompletedTasks = () => {
-      for (const task in tasks) {
-        if (tasks[task] === "complete") {
-          delete tasks[task];
-        }
-      }
-      reorderTasks();
-      saveLocalStorage();
-    };
-
-    const addPlaceholders = () => {
-      addTask("Buy groceries");
-      addTask("Clean the garage");
-      addTask("Finish reading the report");
-      addTask("Schedule doctor's appointment");
-      addTask("Call the insurance company");
-      addTask("Send meeting notes to team");
-      addTask("Organize the bookshelf");
-      completeTask("Send meeting notes to team");
-      completeTask("Schedule doctor's appointment");
-      completeTask("Clean the garage");
-    };
+    // --------------------- REORDER TASKS ---------------------
 
     const reorderTasks = () => {
       const completedTasks = {};
@@ -131,33 +164,29 @@ export default {
 
       Object.keys(tasks).forEach(task => delete tasks[task]);
       Object.assign(tasks, incompleteTasks, completedTasks);
-      saveLocalStorage();
+      saveStorage();
     };
 
-    const clearTasks = () => {
-      Object.keys(tasks).forEach(task => delete tasks[task]);
-      saveLocalStorage();
-    };
+    // --------------------- ON LOADING ---------------------
 
     onMounted(() => {
-      loadLocalStorage();
-      window.addPlaceholders = addPlaceholders;
-      window.clearTasks = clearTasks;
-      window.clearCompletedTasks = clearCompletedTasks;
+      getUserStatus();
     });
 
-    const loadLocalStorage = () => {
-      const savedTasks = window.localStorage.getItem('tasks');
-      if (savedTasks) {
-        Object.assign(tasks, JSON.parse(savedTasks));
-      }
-    };
+    // --------------------- ON CLOSING  ---------------------
 
-    watch(tasks, (val) => {
-      window.localStorage.setItem('tasks', JSON.stringify(val));
+    onUnmounted(() => {
+      saveStorage();
     });
 
-    return { task, tasks, addTask, removeTask, completeTask, incompleteTask, toggleTaskStatus, clearTasks, clearCompletedTasks, addPlaceholders, updateTaskName };
+    // --------------------- WATCHERS ---------------------
+
+    watch(user, (newUser) => {
+      loadStorage();
+    })
+
+
+    return { task, tasks, addTask, removeTask, completeTask, updateTaskName };
   }
 };
 </script>
