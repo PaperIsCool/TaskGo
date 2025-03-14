@@ -20,8 +20,10 @@
         <a class="nav-link hover-pointer" @click="handleSignOut">Sign Out</a>
       </li>
     </ul>
-    <Register :show="showSignUp" @close="showSignUp = false" style="z-index: 10;" />
-    <SignIn :show="showSignIn" @close="showSignIn = false" style="z-index: 10;" />
+    <center>
+      <Register :show="showSignUp" @close="showSignUp = false" style="z-index: 10;" />
+      <SignIn :show="showSignIn" @close="showSignIn = false" style="z-index: 10;" />
+    </center>
   </nav>
 </template>
 
