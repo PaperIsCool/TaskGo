@@ -30,6 +30,9 @@ coverage
 *.tsbuildinfo
 
 firebase.js
+
+push.ps1
+
 .env
 .env.local
 .env.*.local

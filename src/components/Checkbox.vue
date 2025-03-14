@@ -17,7 +17,11 @@ export default {
   },
   methods: {
     toggleCheck(event) {
-      this.$emit('change', event.target.checked);
+      if (!this.checked) {
+        this.$emit('change', true);
+      } else {
+        event.target.checked = true;
+      }
     }
   }
 };

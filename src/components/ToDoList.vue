@@ -1,19 +1,13 @@
 <template>
   <div>
-    <ToDoItems 
-      :tasks="tasks" 
-      @toggleTaskStatus="toggleTaskStatus" 
-      @removeTask="removeTask"
-      @updateTaskName="updateTaskName"
-    />
-    <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)"/>
+    <ToDoItems :tasks="tasks" @toggleTaskStatus="toggleTaskStatus" @removeTask="removeTask" @updateTaskName="updateTaskName" />
+    <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)" />
   </div>
 </template>
 
 <script>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, watch } from 'vue';
 import ToDoItems from './ToDoItems.vue';
-import { watch } from 'vue';
 
 export default {
   name: 'ToDoList',
@@ -28,21 +22,27 @@ export default {
       if (taskVal.trim() !== '') {
         tasks[taskVal] = "incomplete";
         task.value = '';
+        saveLocalStorage();
       }
-      reorderTasks();
+    };
+
+    const saveLocalStorage = () => {
+      window.localStorage.setItem('tasks', JSON.stringify(tasks));
     };
 
     const removeTask = (taskName) => {
       delete tasks[taskName];
+      saveLocalStorage();
     };
 
     const completeTask = (taskName) => {
-      delete tasks[taskName];
       tasks[taskName] = "complete";
+      saveLocalStorage();
     };
 
     const incompleteTask = (taskName) => {
       tasks[taskName] = "incomplete";
+      saveLocalStorage();
     };
 
     const toggleTaskStatus = (taskName, isChecked) => {
@@ -56,47 +56,37 @@ export default {
     const updateTaskName = (oldName, newName) => {
       if (newName.trim() !== '' && oldName !== newName) {
         const keys = Object.keys(tasks);
-
-        const values = keys.map(key => tasks[key]); 
-        
+        const values = keys.map(key => tasks[key]);
         const index = keys.indexOf(oldName);
-        
-        let before_taskNames = []
-        let before_status = []
-        let after_taskNames = []
-        let after_status = []
-        
+        let before_taskNames = [];
+        let before_status = [];
+        let after_taskNames = [];
+        let after_status = [];
+
         for (let i = 0; i < index; i++) {
-          before_taskNames.push(keys[i])
-          before_status.push(values[i])
+          before_taskNames.push(keys[i]);
+          before_status.push(values[i]);
         }
-        
-        for (let i = index+1; i < keys.length; i++) { 
-          after_taskNames.push(keys[i])
-          after_status.push(values[i])
+
+        for (let i = index + 1; i < keys.length; i++) {
+          after_taskNames.push(keys[i]);
+          after_status.push(values[i]);
         }
-        
+
         clearTasks();
 
         for (let i = 0; i < before_taskNames.length; i++) {
-          tasks[before_taskNames[i]] = before_status[i]
+          tasks[before_taskNames[i]] = before_status[i];
         }
-        
-        tasks[newName] = values[index]
-        
+
+        tasks[newName] = values[index];
+
         for (let i = 0; i < after_taskNames.length; i++) {
-          tasks[after_taskNames[i]] = after_status[i]
+          tasks[after_taskNames[i]] = after_status[i];
         }
-        
+        saveLocalStorage();
         reorderTasks();
-
       }
-    };
-
-    const clearTasks = () => {
-      Object.keys(tasks).forEach((task) => {
-          delete tasks[task];
-      });
     };
 
     const clearCompletedTasks = () => {
@@ -105,6 +95,7 @@ export default {
           delete tasks[task];
         }
       }
+      saveLocalStorage();
     };
 
     const addPlaceholders = () => {
@@ -131,21 +122,30 @@ export default {
           incompleteTasks[task] = "incomplete";
         }
       }
-      
+
       Object.keys(tasks).forEach(task => delete tasks[task]);
       Object.assign(tasks, incompleteTasks, completedTasks);
+      saveLocalStorage();
+    };
+
+    const clearTasks = () => {
+      Object.keys(tasks).forEach(task => delete tasks[task]);
+      saveLocalStorage();
     };
 
     onMounted(() => {
+      loadLocalStorage();
       window.addPlaceholders = addPlaceholders;
       window.clearTasks = clearTasks;
       window.clearCompletedTasks = clearCompletedTasks;
     });
 
-    const savedTasks = window.localStorage.getItem('tasks');
-    if (savedTasks) {
-      Object.assign(tasks, JSON.parse(savedTasks));
-    }
+    const loadLocalStorage = () => {
+      const savedTasks = window.localStorage.getItem('tasks');
+      if (savedTasks) {
+        Object.assign(tasks, JSON.parse(savedTasks));
+      }
+    };
 
     watch(tasks, (val) => {
       window.localStorage.setItem('tasks', JSON.stringify(val));

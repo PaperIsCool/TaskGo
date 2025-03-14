@@ -1,6 +1,6 @@
 <template>
   <div v-for="(status, taskName) in tasks" :key="taskName">
-    <CustomCheckbox :checked="status === 'complete'" @change="toggleTaskStatus(taskName, $event)"/>
+    <CustomCheckbox :checked="status === 'complete'" @change="toggleTaskStatus(taskName, $event)" :disabled="status === 'complete'"/>
     <span v-if="!isEditing[taskName]" :class="{ 'completed': status === 'complete', 'incomplete': status === 'incomplete' }">{{ taskName }}</span>
     <input v-else v-model="editedTask" @keyup.enter="updateTask(taskName)" @keyup.esc="cancelEdit(taskName)" type="text" class="text-input" @blur="cancelEdit(taskName)" />
     <button @click="removeTask(taskName)" class="btn btn-link text-right close-btn">✖</button>
@@ -12,7 +12,6 @@
 <script>
 import CustomCheckbox from './Checkbox.vue';
 import { ref, reactive, nextTick } from 'vue';
-
 
 export default {
   name: 'ToDoItems',
@@ -51,6 +50,7 @@ export default {
     };
 
     const toggleTaskStatus = (task, isChecked) => {
+      if (props.tasks[task] === 'complete') return;
       emit('toggleTaskStatus', task, isChecked);
     };
 
