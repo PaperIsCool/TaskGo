@@ -1,5 +1,5 @@
 <template>
-  <div v-for="(status, taskName) in incompleteTasksObj" :key="taskName">
+  <div v-for="(status, taskName) in completedTasksObj" :key="taskName">
     <CustomCheckbox :checked="status === 'complete'" @change="toggleTaskStatus(taskName, $event)" :disabled="status === 'complete'"/>
     <span v-if="!isEditing[taskName]" :class="{ 'completed': status === 'complete', 'incomplete': status === 'incomplete' }">{{ taskName }}</span>
     <input v-else v-model="editedTask" @keyup.enter="updateTask(taskName)" @keyup.esc="cancelEdit(taskName)" type="text" class="text-input" @blur="cancelEdit(taskName)" />
@@ -15,7 +15,7 @@ import { ref, reactive, nextTick, computed } from 'vue';
 import { tasks } from '@/components/ToDoList.vue';
 
 export default {
-  name: 'ToDoItems',
+  name: 'CompletedTasksList',
   components: {
     CustomCheckbox
   },

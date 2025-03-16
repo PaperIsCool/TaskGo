@@ -88,9 +88,6 @@
           });
         });
 
-        console.log("Total Tasks:", totalTasks.value);
-        console.log("Completed Tasks:", completedTasks.value);
-
         return { showSignUp, showSignIn, goToHome, user, firstName, totalTasks, completedTasks };        
       },
   }

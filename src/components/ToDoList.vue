@@ -1,11 +1,52 @@
 <template>
   <div>
-    <ToDoItems :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" />
-    <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)" />
-  
-    <h1 v-if="isTask" class="text-center mt-25 large-text">🎉</h1>
-    <h1 v-if="isTask" class="text-center smaller-text">Congrats!</h1>
-    <h1 v-if="isTask" class="text-center smallest-text">You’re all done! No tasks left! </h1>
+
+    <!--INCOMPLETE TASKS-->
+    
+    <div class="incomplete-tasks-container-if-completed-shown" v-if="showCompleted">
+      <ToDoItems :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" />
+      <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)" />
+    
+      <h1 v-if="isTask" class="text-center mt-25 large-text">🎉</h1>
+      <h1 v-if="isTask" class="text-center smaller-text">Congrats!</h1>
+      <h1 v-if="isTask" class="text-center smallest-text">You have completed all your tasks!</h1>
+    </div>
+
+    <div class="incomplete-tasks-container" v-else>
+      <ToDoItems :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" />
+      <input v-model="task" type="text" placeholder="Add a task (Enter)" class="text-input" @keyup.enter="addTask(task)" />
+    
+      <h1 v-if="isTask" class="text-center mt-25 large-text">🎉</h1>
+      <h1 v-if="isTask" class="text-center smaller-text">Congrats!</h1>
+      <h1 v-if="isTask" class="text-center smallest-text">You have completed all your tasks!</h1>
+    </div>
+
+
+    <!--COMPLETED TASKS-->
+
+    <div class="completedList">
+      <div class="completed-tasks-container-if-completed-shown" v-if="showCompleted">
+        <hr>
+          <div @click="toggleShowCompleted" class="hover-pointer d-flex justify-content-between align-items-center">
+            <span class="ms-1">Completed Tasks</span>
+            <span v-if="showCompleted" class="btn btn-link btn-normal">▲</span>
+            <span v-else class="btn btn-link btn-normal">▼</span>
+          </div>
+        <hr>
+        <CompletedTasksList :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" v-if="showCompleted"/>
+      </div>
+
+      <div class="completed-tasks-container" v-else>
+        <hr>
+          <div @click="toggleShowCompleted" class="hover-pointer d-flex justify-content-between align-items-center">
+            <span class="ms-1">Completed Tasks</span>
+            <span v-if="showCompleted" class="btn btn-link btn-normal">▲</span>
+            <span v-else class="btn btn-link btn-normal">▼</span>
+          </div>
+        <hr>
+        <CompletedTasksList :tasks="tasks" @toggleTaskStatus="completeTask" @removeTask="removeTask" @updateTaskName="updateTaskName" v-if="showCompleted"/>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -16,6 +57,7 @@ import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import CompletedTasksList from './CompletedTasksList.vue';
 
 // Export tasks object
 export const tasks = reactive({});
@@ -23,13 +65,36 @@ export const tasks = reactive({});
 export default {
   name: 'ToDoList',
   components: {
-    ToDoItems
+    ToDoItems, CompletedTasksList
   },
   setup() {
     const task = ref('');
+    const showCompleted = ref(false);
     const user = ref(null);
     const userEmail = ref(null);
-    const isTask = computed(() => Object.keys(tasks).length === 0);
+    const isTask = computed(() => Object.keys(incompleteTasksObj.value).length === 0);
+
+    // --------------------- GET COMPLETED AND IMCOMPLETED TASKS AS JS OBJECT ---------------------
+
+    const completedTasksObj = computed(() => {
+      const completed = {};
+      for (const [taskName, status] of Object.entries(tasks)) {
+      if (status === 'complete') {
+        completed[taskName] = status;
+      }
+      }
+      return completed;
+    });
+
+    const incompleteTasksObj = computed(() => {
+      const incomplete = {};
+      for (const [taskName, status] of Object.entries(tasks)) {
+      if (status === 'incomplete') {
+        incomplete[taskName] = status;
+      }
+      }
+      return incomplete;
+    });
     
     // --------------------- GET USER STATUS ---------------------
     
@@ -50,26 +115,27 @@ export default {
     // --------------------- LOAD STORAGE ---------------------
     
     const loadStorage = async () => {
-    if (user.value) {
-        try {
-          const docRef = doc(db, 'users', userEmail.value);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks before reloading
-            Object.assign(tasks, userData.tasks || {});
-          } else {
-            console.log("No tasks found!");
+      if (user.value) {
+          try {
+            const docRef = doc(db, 'users', userEmail.value);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const userData = docSnap.data();
+              Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks before reloading
+              Object.assign(tasks, userData.tasks || {});
+            } else {
+              console.log("No tasks found!");
+            }
+          } catch (error) {
+            console.error("Error loading tasks:", error);
           }
-        } catch (error) {
-          console.error("Error loading tasks:", error);
+        } else {
+          const savedTasks = window.localStorage.getItem('tasks');
+          Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks before reloading
+          if (savedTasks) Object.assign(tasks, JSON.parse(savedTasks));
         }
-      } else {
-        const savedTasks = window.localStorage.getItem('tasks');
-        Object.keys(tasks).forEach(task => delete tasks[task]); // clear tasks before reloading
-        if (savedTasks) Object.assign(tasks, JSON.parse(savedTasks));
-      }
-      reorderTasks();
+
+        reorderTasks();
     };
     
     // --------------------- SAVE STORAGE ---------------------
@@ -87,6 +153,7 @@ export default {
       } else {
         window.localStorage.setItem('tasks', JSON.stringify(tasks));
       }
+
     };
     
     // --------------------- ADD A TASK ---------------------
@@ -192,7 +259,18 @@ export default {
       loadStorage();
     })
 
-    return { task, tasks, addTask, removeTask, completeTask, updateTaskName, isTask };
+    // --------------------- TOGGLE SHOW COMPLETED TASKS ---------------------
+    
+    const toggleShowCompleted = () => {
+      if (showCompleted.value === false) {
+        showCompleted.value = true
+      } else {
+        showCompleted.value = false
+      }
+    }
+
+
+    return { task, tasks, addTask, removeTask, completeTask, updateTaskName, isTask, completedTasksObj, incompleteTasksObj, showCompleted, toggleShowCompleted };
   }
 };
 </script>
@@ -234,5 +312,30 @@ export default {
 }
 .smallest-text {
   font-size: 150%;
+}
+.completedList {
+  position: fixed;
+  bottom: 0;
+  width: 40vw;
+}
+.btn-normal {
+    text-decoration: none;
+    color: #B0B0B0;
+}
+.completed-tasks-container {
+  max-height: 10vh;
+  overflow: hidden;
+}
+.completed-tasks-container-if-completed-shown {
+  max-height: 30vh;
+  overflow: auto;
+}
+.incomplete-tasks-container-if-completed-shown {
+  max-height: 55vh;
+  overflow: auto;
+}
+.incomplete-tasks-container {
+  max-height: 75vh;
+  overflow: auto;
 }
 </style>
