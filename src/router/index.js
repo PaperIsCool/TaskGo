@@ -1,23 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Tasks from '@/pages/Tasks.vue';
-import Index from '@/pages/index.vue';
-import NotFound from '@/pages/404.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Index',
-    component: Index
+    component: () => import('@/pages/index.vue')
   },
   {
     path: '/app',
     name: 'Tasks',
-    component: Tasks
+    component: () => import('@/pages/Tasks.vue')
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: NotFound
+    component: () => import('@/pages/404.vue')
   }
 ];
 

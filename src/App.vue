@@ -1,33 +1,18 @@
 <template>
   <div id="app">
-    <div v-if="loading" class="loading-screen">
-      <img src="@/assets/logo.png" alt="TaskGo" width="250" class="loader-img" />
-      <img src="@/assets/loading.png" alt="loading" width="100" class="loader-img" />
-    </div>
-    <router-view v-else></router-view>
+    <suspense>
+      <template #default>
+        <router-view></router-view>
+      </template>
+      <template #fallback>
+        <div class="loading-screen">
+          <img src="@/assets/logo.png" alt="TaskGo" width="250" class="loader-img" />
+          <img src="@/assets/loading.png" alt="loading" width="100" class="loader-img" />
+        </div>
+      </template>
+    </suspense>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'App',
-  data() {
-    return {
-      loading: true
-    };
-  },
-  created() {
-    this.$router.beforeEach((to, from, next) => {
-      this.loading = true;
-      next();
-    });
-
-    this.$router.afterEach(() => {
-      this.loading = false;
-    });
-  }
-};
-</script>
 
 <style>
 .loading-screen {
